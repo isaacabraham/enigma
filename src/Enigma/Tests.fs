@@ -1,7 +1,10 @@
 ﻿module Enigma.Tests
 
 open Xunit
+open FsCheck
+open FsCheck.Xunit
 open Swensen.Unquote
+open System
 
 [<Fact>]
 let ``Should translate a message that only needs the right rotor to advance``() =
@@ -61,3 +64,46 @@ let ``Operation Barbarossa Part 1``() =
       |> withPlugBoard "AV BS CG DL FU HZ IN KM OW RX")
     |> translate "EDPUD NRGYS ZRCXN UYTPO MRMBO FKTBZ REZKM LXLVE FGUEY SIOZV EQMIK UBPMM YLKLT TDEIS MDICA GYKUA CTCDO MOHWX MUUIA UBSTS LRNBZ SZWNR FXWFY SSXJZ VIJHI DISHP RKLKA YUPAD TXQSP INQMA TLPIF SVKDA SCTAC DPBOP VHJK"
     =? "AUFKL XABTE ILUNG XVONX KURTI NOWAX KURTI NOWAX NORDW ESTLX SEBEZ XSEBE ZXUAF FLIEG ERSTR ASZER IQTUN GXDUB ROWKI XDUBR OWKIX OPOTS CHKAX OPOTS CHKAX UMXEI NSAQT DREIN ULLXU HRANG ETRET ENXAN GRIFF XINFX RGTX"
+
+let testEnigma =
+    { defaultEnigma
+         with Reflector = Components.ReflectorB
+              Left = Components.Rotor2
+              Middle = Components.Rotor4
+              Right = Components.Rotor5 }
+    |> withRingSettings 'A' 'B' 'C'
+    |> withWheelPositions 'T' 'E' 'D'
+    |> withPlugBoard "AB VS DG CL HU FZ KN IM RW OX"
+
+//TODO: Create a proper FsCheck generator to only generate encryptable strings.
+let (|Encryptable|Invalid|) =
+    function
+    | null
+    | "" -> Invalid
+    | text when text |> (not << Seq.exists Char.IsLetter) -> Invalid
+    | text -> Encryptable text
+
+[<Property(Verbose = true)>]
+let ``Encrypting and decrypting text always gives the same text``(text) =
+    match text with
+    | Invalid -> true
+    | Encryptable text ->
+        let encrypted = testEnigma |> translate text
+        let decrypted = testEnigma |> translate encrypted
+        text.ToUpper() = decrypted
+
+[<Property(Verbose = true)>]
+let ``Encrypted and decrypted text are never the same``(text) =
+    match text with
+    | Invalid -> true
+    | Encryptable text ->
+        let encrypted = testEnigma |> translate text
+        text.ToUpper() <> encrypted
+
+[<Property(Verbose = true)>]
+let ``Encrypted and decrypted text are always the same length``(text) =
+    match text with
+    | Invalid -> true
+    | Encryptable text ->
+        let encrypted = testEnigma |> translate text
+        text.Length = encrypted.Length
