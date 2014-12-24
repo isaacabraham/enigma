@@ -1,6 +1,6 @@
 ﻿#load "Domain.fs"
+open Enigma
 #load "Logic.fs"
-
 open Enigma
 
 //Please decrypt me :)
