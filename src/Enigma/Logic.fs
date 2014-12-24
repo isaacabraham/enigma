@@ -50,7 +50,6 @@ module private Translation =
         match direction with
         | Forward -> mapping.[alphabet.IndexOf letter]
         | Inverse -> alphabet.[mapping.IndexOf letter] 
-
     let reflectUsing (Reflector mapping) (letter:char) = mapping.[alphabet.IndexOf letter]
     let substituteUsing (PlugBoard mapping) (letter:char) =
         mapping
@@ -62,7 +61,6 @@ module private Translation =
             | _ -> None)
         |> defaultArg <| letter
 
-    open AlphabetMappingFunctions
     let rotate (rotor, (WheelPosition currentPosition)) = 
         rotor, currentPosition 
                |> shiftUp 1
@@ -70,7 +68,7 @@ module private Translation =
 
 /// Contains standard Enigma rotors and reflectors.
 module Components =
-    let private createRotor (mapping, knockOns) = { Mapping = mapping; KnockOns = knockOns |> List.map WheelPosition; RingSetting = RingSetting 'A' }, WheelPosition 'A'
+    let private createRotor (mapping, knockOns) = { Mapping = mapping; KnockOns = knockOns |> List.map WheelPosition; RingSetting = RingSetting 'A' }
     let Rotor1 = createRotor ("EKMFLGDQVZNTOWYHXUSPAIBRCJ", [ 'Q' ])
     let Rotor2 = createRotor ("AJDKSIRUXBLHWTMCQGZNPYFVOE", [ 'E' ])
     let Rotor3 = createRotor ("BDFHJLCPRTXVZNYEIWGAKMUSQO", [ 'V' ])
@@ -100,6 +98,7 @@ module Operations =
         >> translateUsing middle Inverse 
         >> translateUsing right Inverse 
         >> substituteUsing plugboard
+    
                
     let private setAdjacentRotors enigma =
         let isKnockOn (rotor, currentPosition) = rotor.KnockOns |> List.exists((=) currentPosition)
@@ -135,9 +134,9 @@ module Helpers =
 
     /// An enigma machine using rotors 1-3 and reflector B with no plugboard.
     let defaultEnigma = 
-        {   Left = Rotor1
-            Middle = Rotor2
-            Right = Rotor3
+        {   Left = Rotor1, WheelPosition 'A'
+            Middle = Rotor2, WheelPosition 'A'
+            Right = Rotor3, WheelPosition 'A'
             Reflector = ReflectorB
             Plugboard = PlugBoard [] }
     

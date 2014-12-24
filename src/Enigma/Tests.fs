@@ -43,11 +43,10 @@ let ``Should translate a message with a plugboard``() =
 let ``Enigma Instruction Manual 1930``() =
     ({ defaultEnigma
         with Reflector = Components.ReflectorA
-             Left = Components.Rotor2
-             Middle = Components.Rotor1
-             Right = Components.Rotor3 }
+             Left = Components.Rotor2, WheelPosition 'A'
+             Middle = Components.Rotor1, WheelPosition 'B'
+             Right = Components.Rotor3, WheelPosition 'L' }
         |> withRingSettings 'X' 'M' 'V'
-        |> withWheelPositions 'A' 'B' 'L'
         |> withPlugBoard "AM FI NV PS TU WZ")
     |> translate "GCDSE AHUGW TQGRK VLFGX UCALX VYMIG MMNMF DXTGN VHVRM MEVOU YFZSL RHDRR XFJWC FHUHM UNZEF RDISI KBGPM YVXUZ"
     =? "FEIND LIQEI NFANT ERIEK OLONN EBEOB AQTET XANFA NGSUE DAUSG ANGBA ERWAL DEXEN DEDRE IKMOS TWAER TSNEU STADT"
@@ -56,11 +55,10 @@ let ``Enigma Instruction Manual 1930``() =
 let ``Operation Barbarossa Part 1``() =
     ({ defaultEnigma
           with Reflector = Components.ReflectorB
-               Left = Components.Rotor2
-               Middle = Components.Rotor4
-               Right = Components.Rotor5 }
+               Left = Components.Rotor2, WheelPosition 'B'
+               Middle = Components.Rotor4, WheelPosition 'L'
+               Right = Components.Rotor5, WheelPosition 'A' }
       |> withRingSettings 'B' 'U' 'L'
-      |> withWheelPositions 'B' 'L' 'A'
       |> withPlugBoard "AV BS CG DL FU HZ IN KM OW RX")
     |> translate "EDPUD NRGYS ZRCXN UYTPO MRMBO FKTBZ REZKM LXLVE FGUEY SIOZV EQMIK UBPMM YLKLT TDEIS MDICA GYKUA CTCDO MOHWX MUUIA UBSTS LRNBZ SZWNR FXWFY SSXJZ VIJHI DISHP RKLKA YUPAD TXQSP INQMA TLPIF SVKDA SCTAC DPBOP VHJK"
     =? "AUFKL XABTE ILUNG XVONX KURTI NOWAX KURTI NOWAX NORDW ESTLX SEBEZ XSEBE ZXUAF FLIEG ERSTR ASZER IQTUN GXDUB ROWKI XDUBR OWKIX OPOTS CHKAX OPOTS CHKAX UMXEI NSAQT DREIN ULLXU HRANG ETRET ENXAN GRIFF XINFX RGTX"
@@ -68,11 +66,10 @@ let ``Operation Barbarossa Part 1``() =
 let testEnigma =
     { defaultEnigma
          with Reflector = Components.ReflectorB
-              Left = Components.Rotor2
-              Middle = Components.Rotor4
-              Right = Components.Rotor5 }
+              Left = Components.Rotor2, WheelPosition 'T'
+              Middle = Components.Rotor4, WheelPosition 'E'
+              Right = Components.Rotor5, WheelPosition 'D' }
     |> withRingSettings 'A' 'B' 'C'
-    |> withWheelPositions 'T' 'E' 'D'
     |> withPlugBoard "AB VS DG CL HU FZ KN IM RW OX"
 
 //TODO: Create a proper FsCheck generator to only generate encryptable strings.
@@ -107,3 +104,12 @@ let ``Encrypted and decrypted text are always the same length``(text) =
     | Encryptable text ->
         let encrypted = testEnigma |> translate text
         text.Length = encrypted.Length
+
+[<Property(Verbose = true)>]
+let ``Encrypting the same character multiple times produces different results``(letter:char) =
+    if (not << Char.IsLetter) letter then true
+    else
+        testEnigma
+        |> translate (String(Array.init 5 (fun _ -> letter)))
+        |> Seq.distinct
+        |> Seq.length > 1
