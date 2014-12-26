@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Enigma", "Enigma\Enigma.fsproj", "{4BD96F8F-9CC5-4302-9A18-A8257DD71FBF}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Enigma", "src\Enigma\Enigma.fsproj", "{4BD96F8F-9CC5-4302-9A18-A8257DD71FBF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
