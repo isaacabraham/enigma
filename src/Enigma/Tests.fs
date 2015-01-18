@@ -71,45 +71,32 @@ let testEnigma =
               Right = Components.Rotor5, WheelPosition 'D' }
     |> withRingSettings 'A' 'B' 'C'
     |> withPlugBoard "AB VS DG CL HU FZ KN IM RW OX"
+let testTranslate text = testEnigma |> translate text
 
-//TODO: Create a proper FsCheck generator to only generate encryptable strings.
-let (|Encryptable|Invalid|) =
-    function
-    | null
-    | "" -> Invalid
-    | text when text |> (not << Seq.exists Char.IsLetter) -> Invalid
-    | text -> Encryptable text
+type ValidTextGen() =
+    static member Generate() = 
+        Arb.Default.String()
+        |> Arb.filter(function
+                      | null | "" -> false
+                      | text when text |> (not << Seq.exists Char.IsLetter) -> false
+                      | _ -> true)
 
-[<Property(Verbose = true)>]
-let ``Encrypting and decrypting text always gives the same text``(text) =
-    match text with
-    | Invalid -> true
-    | Encryptable text ->
-        let encrypted = testEnigma |> translate text
-        let decrypted = testEnigma |> translate encrypted
-        text.ToUpper() = decrypted
+[<Property(Verbose = true, Arbitrary = [| typeof<ValidTextGen>|])>]
+let ``Encrypting and decrypting text always gives the same text`` text =
+    testTranslate >> testTranslate <| text = text.ToUpper()
 
-[<Property(Verbose = true)>]
+[<Property(Verbose = true, Arbitrary = [| typeof<ValidTextGen>|])>]
 let ``Encrypted and decrypted text are never the same``(text) =
-    match text with
-    | Invalid -> true
-    | Encryptable text ->
-        let encrypted = testEnigma |> translate text
-        text.ToUpper() <> encrypted
+    (testTranslate text) <> text.ToUpper()
 
-[<Property(Verbose = true)>]
+[<Property(Verbose = true, Arbitrary = [| typeof<ValidTextGen>|])>]
 let ``Encrypted and decrypted text are always the same length``(text) =
-    match text with
-    | Invalid -> true
-    | Encryptable text ->
-        let encrypted = testEnigma |> translate text
-        text.Length = encrypted.Length
+    (testTranslate text).Length = text.Length
 
 [<Property(Verbose = true)>]
 let ``Encrypting the same character multiple times produces different results``(letter:char) =
-    if (not << Char.IsLetter) letter then true
-    else
-        testEnigma
-        |> translate (String(Array.init 5 (fun _ -> letter)))
+    Char.IsLetter letter ==> lazy
+        (String(Array.init 5 (fun _ -> letter)))
+        |> testTranslate 
         |> Seq.distinct
         |> Seq.length > 1
