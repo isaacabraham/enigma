@@ -84,21 +84,21 @@ type ValidTextGen() =
     static member Generate() = 
         Arb.Default.String()
         |> Arb.filter(function
-                      | null | "" -> false
-                      | text when text |> (not << Seq.exists Char.IsLetter) -> false
-                      | _ -> true)
+            | null | "" -> false
+            | text when text |> Seq.forall Char.IsLetter -> true
+            | _ -> false)
 
-[<Property(Verbose = true, Arbitrary = [| typeof<ValidTextGen>|])>]
+[<Property(Verbose = true, Arbitrary = [| typeof<ValidTextGen> |])>]
 [<Trait("", "Property-Based Test")>]
 let ``Encrypting and decrypting text always gives the same text`` text =
     testTranslate >> testTranslate <| text = text.ToUpper()
 
-[<Property(Verbose = true, Arbitrary = [| typeof<ValidTextGen>|])>]
+[<Property(Verbose = true, Arbitrary = [| typeof<ValidTextGen> |])>]
 [<Trait("", "Property-Based Test")>]
 let ``Encrypted and decrypted text are never the same``(text) =
     (testTranslate text) <> text.ToUpper()
 
-[<Property(Verbose = true, Arbitrary = [| typeof<ValidTextGen>|])>]
+[<Property(Verbose = true, Arbitrary = [| typeof<ValidTextGen> |])>]
 [<Trait("", "Property-Based Test")>]
 let ``Encrypted and decrypted text are always the same length``(text) =
     (testTranslate text).Length = text.Length
