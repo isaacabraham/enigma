@@ -1,6 +1,6 @@
 source https://nuget.org/api/v2
+redirects: on
 
 nuget Unquote
-nuget Xunit
-nuget FsCheck
-nuget FsCheck.Xunit
+nuget FsCheck.xUnit
+nuget xunit.runner.visualstudio version_in_path: true

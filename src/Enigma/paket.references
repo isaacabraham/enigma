@@ -1,4 +1,3 @@
 Unquote
-Xunit
-FsCheck
-FsCheck.Xunit
+FsCheck.xUnit
+xunit.runner.visualstudio
