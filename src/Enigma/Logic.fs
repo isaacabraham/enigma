@@ -98,7 +98,6 @@ module Operations =
         >> translateUsing middle Inverse 
         >> translateUsing right Inverse 
         >> substituteUsing plugboard
-    
                
     let private setAdjacentRotors enigma =
         let isKnockOn (rotor, currentPosition) = rotor.KnockOns |> List.exists((=) currentPosition)
@@ -117,15 +116,11 @@ module Operations =
 
     /// Translates some text using the supplied enigma machine.
     let translate (text:String) enigma =
-        let translated =
-            (enigma, text |> Seq.toList)
-            |> Seq.unfold(fun (enigma, letters) ->
-                match letters with
-                | letter :: remainder ->
-                    let translatedLetter, updatedEnigma = letter |> translateChar enigma
-                    Some(translatedLetter, (updatedEnigma, remainder))
-                | _ -> None)
-        String (translated |> Seq.toArray)
+        (enigma, text)
+        ||> Seq.mapFold translateChar
+        |> fst
+        |> Seq.toArray
+        |> String
 
 [<AutoOpen>]
 /// Contains builder functions to quickly create configured Enigma machines.
@@ -139,6 +134,13 @@ module Helpers =
             Right = Rotor3, WheelPosition 'A'
             Reflector = ReflectorB
             Plugboard = PlugBoard [] }
+
+    /// Sets the rotors of the Enigma.
+    let withRotors a b c enigma =
+        { enigma with
+            Left = a, snd enigma.Left
+            Middle = b, snd enigma.Middle
+            Right = c, snd enigma.Right }
     
     /// Adjusts the wheel positions of the Enigma.
     let withWheelPositions a b c enigma =

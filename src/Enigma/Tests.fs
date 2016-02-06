@@ -1,5 +1,6 @@
 ﻿module Enigma.Tests
 
+open Components
 open Xunit
 open FsCheck
 open FsCheck.Xunit
@@ -12,7 +13,7 @@ let ``Should translate a message that only needs the right rotor to advance``() 
     (defaultEnigma |> withWheelPositions 'A' 'B' 'C')
     |> translate "AEFAEJXXBNXYJTY"
     =! "CONGRATULATIONS"
-    
+
 [<Fact>]
 [<Trait("", "Unit Test")>]
 let ``Should translate a message with rotor turnover``() =
@@ -37,6 +38,15 @@ let ``Should translate a message with ring settings``() =
 
 [<Fact>]
 [<Trait("", "Unit Test")>]
+let ``Should translate a message with custom rotors``() =
+    (defaultEnigma |> withRotors Rotor2 Rotor3 Rotor1
+                   |> withWheelPositions 'X' 'Y' 'Z'
+                   |> withRingSettings 'J' 'N' 'U')
+    |> translate "WMUOMJ YRLFLA"
+    =! "CUSTOM ROTORS"
+
+[<Fact>]
+[<Trait("", "Unit Test")>]
 let ``Should translate a message with a plugboard``() =
     (defaultEnigma |> withWheelPositions 'V' 'Q' 'Q'
                    |> withRingSettings 'J' 'N' 'U'
@@ -44,7 +54,6 @@ let ``Should translate a message with a plugboard``() =
     |> translate "HABHV HL YDFN ADZY"
     =! "THATS IT WELL DONE"
 
-open Components
 
 [<Fact>]
 [<Trait("", "Unit Test")>]
@@ -83,12 +92,17 @@ let testEnigma =
 let testTranslate text = testEnigma |> translate text
 
 type ValidTextGen() =
-    static member Generate() = 
+    static member private isValidChar = fun c -> Char.IsLetter c && Char.IsUpper c
+    static member GenerateString() = 
         Arb.Default.String()
         |> Arb.filter(function
             | null | "" -> false
-            | text when text |> Seq.forall Char.IsLetter -> true
+            | text when text |> Seq.forall ValidTextGen.isValidChar -> true
             | _ -> false)
+
+    static member GenerateChar() =
+        Arb.Default.Char()
+        |> Arb.filter ValidTextGen.isValidChar
 
 [<Property(Verbose = true, Arbitrary = [| typeof<ValidTextGen> |])>]
 [<Trait("", "Property-Based Test")>]
@@ -105,7 +119,7 @@ let ``Encrypted and decrypted text are never the same``(text) =
 let ``Encrypted and decrypted text are always the same length``(text) =
     (testTranslate text).Length = text.Length
 
-[<Property(Verbose = true)>]
+[<Property(Verbose = true, Arbitrary = [| typeof<ValidTextGen> |])>]
 [<Trait("", "Property-Based Test")>]
 let ``Encrypting the same character multiple times produces different results``(letter:char) =
     Char.IsLetter letter ==> lazy
