@@ -5,10 +5,8 @@ open System
 module private AlphabetMappingFunctions = 
     let private toCircularSeq items = 
         let rec next () = 
-            seq {
-                for element in items do yield element
-                yield! next()
-            }
+            seq { yield! items
+                  yield! next() }
         next()
 
     let alphabet = String [|'A'..'Z'|]
@@ -25,41 +23,36 @@ module private AlphabetMappingFunctions =
     let shiftDown = shiftBy Inverse
 
     /// Rotates a given mapping by a specific amount
-    let shiftMappingBy amount mapping =
-        String(mapping
-               |> toCircularSeq
-               |> Seq.skip amount
-               |> Seq.take (mapping |> Seq.length)
-               |> Seq.toArray)
+    let shiftMappingBy amount (mapping:char array) =
+        mapping
+        |> toCircularSeq
+        |> Seq.skip amount
+        |> Seq.take mapping.Length
+        |> Seq.toArray
 
 module private Translation = 
     open AlphabetMappingFunctions
     
-    let private applyWheelPosition (WheelPosition wheelPosition) mapping =
+    let private applyWheelPosition (WheelPosition wheelPosition) (mapping:char array) =
         let wheelPosition = alphabet.IndexOf wheelPosition
-        let mapping = mapping |> shiftMappingBy wheelPosition
-        String(mapping |> Seq.map (shiftDown wheelPosition) |> Seq.toArray)
+        mapping
+        |> shiftMappingBy wheelPosition
+        |> Array.map (shiftDown wheelPosition)
 
-    let private applyRingSetting (RingSetting ringSetting) mapping =
+    let private applyRingSetting (RingSetting ringSetting) (mapping:char array) =
         let ringSettingIndex = alphabet.IndexOf ringSetting
-        let mapping = mapping |> shiftMappingBy (alphabet.Length - ringSettingIndex)
-        String(mapping |> Seq.map (shiftUp ringSettingIndex) |> Seq.toArray)
+        mapping
+        |> shiftMappingBy (alphabet.Length - ringSettingIndex)
+        |> Array.map (shiftUp ringSettingIndex)
 
     let translateUsing (rotor, currentPosition) direction (letter:char) =
-        let mapping = rotor.Mapping |> applyWheelPosition currentPosition |> applyRingSetting rotor.RingSetting
+        let mapping = rotor.Mapping.ToCharArray() |> applyWheelPosition currentPosition |> applyRingSetting rotor.RingSetting |> String
         match direction with
         | Forward -> mapping.[alphabet.IndexOf letter]
         | Inverse -> alphabet.[mapping.IndexOf letter] 
     let reflectUsing (Reflector mapping) (letter:char) = mapping.[alphabet.IndexOf letter]
-    let substituteUsing (PlugBoard mapping) (letter:char) =
-        mapping
-        |> List.tryFind(fun m -> m.IndexOf letter <> -1)
-        |> Option.map Seq.toArray
-        |> Option.bind(
-            function
-            | [| first; second |] -> Some <| if letter = first then second else first
-            | _ -> None)
-        |> defaultArg <| letter
+    let substituteUsing (PlugBoard plugboardMapping) (letter:char) =
+        plugboardMapping.TryFind letter |> defaultArg <| letter
 
     let rotate (rotor, (WheelPosition currentPosition)) = 
         rotor, currentPosition 
@@ -85,8 +78,6 @@ module Components =
 [<AutoOpen>]
 module Operations =
     open Translation
-    open Components
-    open AlphabetMappingFunctions
  
     let private doTranslation (left, middle, right, reflector, plugboard) =
         substituteUsing plugboard
@@ -133,7 +124,7 @@ module Helpers =
             Middle = Rotor2, WheelPosition 'A'
             Right = Rotor3, WheelPosition 'A'
             Reflector = ReflectorB
-            Plugboard = PlugBoard [] }
+            Plugboard = PlugBoard Map.empty }
 
     /// Sets the rotors of the Enigma.
     let withRotors a b c enigma =
@@ -158,6 +149,10 @@ module Helpers =
     
     /// Adjusts the plugboard of the Enigma.       
     let withPlugBoard (mappings:string) enigma =
-        { enigma with Plugboard = mappings.Split ' ' |> Array.toList |> PlugBoard }
+        { enigma with
+            Plugboard =
+                (Map.empty, mappings.Split ' ' |> Array.collect(fun pair -> [| pair.[0], pair.[1]; pair.[1], pair.[0] |]))
+                ||> Array.fold(fun plugBoard -> plugBoard.Add)
+                |> PlugBoard }
 
 

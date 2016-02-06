@@ -4,7 +4,7 @@ type AlphabetMapping = string
 type RingSetting = RingSetting of char
 type WheelPosition = WheelPosition of char
 type KnockOn = WheelPosition list
-type PlugBoard = PlugBoard of string list
+type PlugBoard = PlugBoard of Map<char, char>
 type Rotor =
     { Mapping : AlphabetMapping
       KnockOns : KnockOn
