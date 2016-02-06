@@ -3,12 +3,6 @@
 open System
 
 module private AlphabetMappingFunctions = 
-    let private toCircularSeq items = 
-        let rec next () = 
-            seq { yield! items
-                  yield! next() }
-        next()
-
     let alphabet = String [|'A'..'Z'|]
     let toCharacter index = alphabet.[index]
 
@@ -24,11 +18,8 @@ module private AlphabetMappingFunctions =
 
     /// Rotates a given mapping by a specific amount
     let shiftMappingBy amount (mapping:char array) =
-        mapping
-        |> toCircularSeq
-        |> Seq.skip amount
-        |> Seq.take mapping.Length
-        |> Seq.toArray
+        if amount = 0 then mapping
+        else Array.append mapping.[amount..] mapping.[..amount - 1]
 
 module private Translation = 
     open AlphabetMappingFunctions
@@ -46,13 +37,15 @@ module private Translation =
         |> Array.map (shiftUp ringSettingIndex)
 
     let translateUsing (rotor, currentPosition) direction (letter:char) =
-        let mapping = rotor.Mapping.ToCharArray() |> applyWheelPosition currentPosition |> applyRingSetting rotor.RingSetting |> String
+        let mapping = rotor.Mapping |> applyWheelPosition currentPosition |> applyRingSetting rotor.RingSetting
         match direction with
         | Forward -> mapping.[alphabet.IndexOf letter]
-        | Inverse -> alphabet.[mapping.IndexOf letter] 
+        | Inverse -> alphabet.[Array.IndexOf(mapping, letter)] 
     let reflectUsing (Reflector mapping) (letter:char) = mapping.[alphabet.IndexOf letter]
     let substituteUsing (PlugBoard plugboardMapping) (letter:char) =
-        plugboardMapping.TryFind letter |> defaultArg <| letter
+        letter
+        |> plugboardMapping.TryFind
+        |> defaultArg <| letter
 
     let rotate (rotor, (WheelPosition currentPosition)) = 
         rotor, currentPosition 
@@ -62,17 +55,17 @@ module private Translation =
 /// Contains standard Enigma rotors and reflectors.
 module Components =
     let private createRotor (mapping, knockOns) = { Mapping = mapping; KnockOns = knockOns |> List.map WheelPosition; RingSetting = RingSetting 'A' }
-    let Rotor1 = createRotor ("EKMFLGDQVZNTOWYHXUSPAIBRCJ", [ 'Q' ])
-    let Rotor2 = createRotor ("AJDKSIRUXBLHWTMCQGZNPYFVOE", [ 'E' ])
-    let Rotor3 = createRotor ("BDFHJLCPRTXVZNYEIWGAKMUSQO", [ 'V' ])
-    let Rotor4 = createRotor ("ESOVPZJAYQUIRHXLNFTGKDCMWB", [ 'J' ])
-    let Rotor5 = createRotor ("VZBRGITYUPSDNHLXAWMJQOFECK", [ 'Z' ])
-    let Rotor6 = createRotor ("JPGVOUMFYQBENHZRDKASXLICTW", [ 'Z'; 'M'])
-    let Rotor7 = createRotor ("NZJHGRCXMYSWBOUFAIVLPEKQDT", [ 'Z'; 'M'])
-    let Rotor8 = createRotor ("FKQHTLXOCBJSPDZRAMEWNIUYGV", [ 'Z'; 'M'])
+    let Rotor1 = createRotor ("EKMFLGDQVZNTOWYHXUSPAIBRCJ".ToCharArray(), [ 'Q' ])
+    let Rotor2 = createRotor ("AJDKSIRUXBLHWTMCQGZNPYFVOE".ToCharArray(), [ 'E' ])
+    let Rotor3 = createRotor ("BDFHJLCPRTXVZNYEIWGAKMUSQO".ToCharArray(), [ 'V' ])
+    let Rotor4 = createRotor ("ESOVPZJAYQUIRHXLNFTGKDCMWB".ToCharArray(), [ 'J' ])
+    let Rotor5 = createRotor ("VZBRGITYUPSDNHLXAWMJQOFECK".ToCharArray(), [ 'Z' ])
+    let Rotor6 = createRotor ("JPGVOUMFYQBENHZRDKASXLICTW".ToCharArray(), [ 'Z'; 'M'])
+    let Rotor7 = createRotor ("NZJHGRCXMYSWBOUFAIVLPEKQDT".ToCharArray(), [ 'Z'; 'M'])
+    let Rotor8 = createRotor ("FKQHTLXOCBJSPDZRAMEWNIUYGV".ToCharArray(), [ 'Z'; 'M'])
 
-    let ReflectorA = Reflector "EJMZALYXVBWFCRQUONTSPIKHGD"
-    let ReflectorB = Reflector "YRUHQSLDPXNGOKMIEBFZCWVJAT"
+    let ReflectorA = Reflector ("EJMZALYXVBWFCRQUONTSPIKHGD".ToCharArray())
+    let ReflectorB = Reflector ("YRUHQSLDPXNGOKMIEBFZCWVJAT".ToCharArray())
 
 /// Contains high-level operations to access Enigma.
 [<AutoOpen>]
@@ -107,10 +100,9 @@ module Operations =
 
     /// Translates some text using the supplied enigma machine.
     let translate (text:String) enigma =
-        (enigma, text)
-        ||> Seq.mapFold translateChar
+        (enigma, text.ToCharArray())
+        ||> Array.mapFold translateChar
         |> fst
-        |> Seq.toArray
         |> String
 
 [<AutoOpen>]

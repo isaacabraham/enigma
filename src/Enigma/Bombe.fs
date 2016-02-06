@@ -5,7 +5,7 @@ open System.Diagnostics
 open System
 open System.Timers
 
-module SequenceGeneration =
+module private SequenceGeneration =
     let private endSequence = Array.create 3 'Z'
     let private shiftLetter index (letters:char array) =
         if letters.[index] = 'Z' then
@@ -41,35 +41,36 @@ module SequenceGeneration =
                             yield rotorComponents.[a], rotorComponents.[b], rotorComponents.[c]
         } |> Seq.toArray
     
+type private Status = Update of Enigma | Complete
 let tryFindSolution encryptedText crib logger =
     let permutations =
         SequenceGeneration.generateSequence (Array.create 5 'A')
         |> ParStream.ofSeq
-//        |> ParStream.collect(fun settings ->
-//            SequenceGeneration.rotors
-//            |> Array.map(fun rotor -> rotor, settings)
-//            |> Stream.ofArray)
 
-    let recorder = MailboxProcessor<Enigma>.Start(fun inbox ->
+    let recorder = MailboxProcessor.Start(fun inbox ->
         let mutable attempts = 0
-        let mutable machine = defaultEnigma
+        let mutable lastEnigma = defaultEnigma
         let timer = new Timer((TimeSpan.FromSeconds 15.).TotalMilliseconds)
         let start = Stopwatch.StartNew()
         let totalPermutations = 26. ** 5.
         let perc = 100. / totalPermutations
 
-        timer.Elapsed.Add(fun _ ->
-            let elapsed = start.Elapsed
-            let rate = float attempts / elapsed.TotalSeconds
-            let estimated = (totalPermutations / rate) - elapsed.TotalSeconds
-            logger (machine, float attempts * perc, int rate, elapsed, TimeSpan.FromSeconds estimated))
+        let subscription =
+            timer.Elapsed.Subscribe(fun _ ->
+                let elapsed = start.Elapsed
+                let rate = float attempts / elapsed.TotalSeconds
+                let estimated = (totalPermutations / rate) - elapsed.TotalSeconds
+                logger (lastEnigma, float attempts * perc, int rate, elapsed, TimeSpan.FromSeconds estimated))
         timer.Start()
 
         async {
             while true do
-                let! nextMachine = inbox.Receive()
-                machine <- nextMachine
-                attempts <- attempts + 1
+                let! message = inbox.Receive()
+                match message with
+                | Update enigma ->
+                    lastEnigma <- enigma
+                    attempts <- attempts + 1
+                | Complete -> subscription.Dispose()
         })
     permutations
     |> ParStream.mapi(fun index ([| a;b;c;d;e |]) ->
@@ -78,6 +79,8 @@ let tryFindSolution encryptedText crib logger =
         |> withWheelPositions a b c
         |> withRingSettings 'A' d e) // first ring setting does nothing
     |> ParStream.tryFind(fun (_, machine) ->
-        recorder.Post machine
+        recorder.Post (Update machine)
         let translation = machine |> translate encryptedText
-        translation.StartsWith crib)
+        let matched = translation.StartsWith crib
+        if matched then recorder.Post Complete
+        matched)

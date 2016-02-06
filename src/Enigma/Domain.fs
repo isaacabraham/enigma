@@ -1,6 +1,6 @@
 ﻿namespace Enigma
 
-type AlphabetMapping = string
+type AlphabetMapping = char array
 type RingSetting = RingSetting of char
 type WheelPosition = WheelPosition of char
 type KnockOn = WheelPosition list
