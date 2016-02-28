@@ -1,18 +1,19 @@
 REDIRECTS: ON
+FRAMEWORK: NET452
 NUGET
   remote: https://www.nuget.org/api/v2
   specs:
-    FsCheck (2.2.4) - framework: net452
+    FsCheck (2.2.4)
       FSharp.Core (>= 3.1.2.5)
-    FsCheck.Xunit (2.2.4) - framework: net452
+    FsCheck.Xunit (2.2.4)
       FsCheck (>= 2.2.4)
       xunit.extensibility.execution (>= 2.1.0 < 2.2.0)
-    FSharp.Core (4.0.0.1) - framework: net452
+    FSharp.Core (4.0.0.1)
     Streams (0.4.1)
     Unquote (3.1.1)
-    xunit.abstractions (2.0.0) - framework: net452
-    xunit.extensibility.core (2.1.0) - framework: net452
+    xunit.abstractions (2.0.0)
+    xunit.extensibility.core (2.1.0)
       xunit.abstractions (2.0.0)
-    xunit.extensibility.execution (2.1.0) - framework: net452
-      xunit.extensibility.core (2.1.0) - framework: >= net45, dnx451, dnxcore50, monoandroid, monotouch, xamarinios, winv4.5, wpv8.0
+    xunit.extensibility.execution (2.1.0)
+      xunit.extensibility.core (2.1.0)
     xunit.runner.visualstudio (2.1.0) - version_in_path: true

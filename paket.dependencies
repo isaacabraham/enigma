@@ -1,7 +1,8 @@
 source https://nuget.org/api/v2
 redirects: on
+framework: net452
 
 nuget Streams
 nuget Unquote
-nuget FsCheck.xUnit framework: net452
+nuget FsCheck.xUnit
 nuget xunit.runner.visualstudio version_in_path: true
