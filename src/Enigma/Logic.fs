@@ -54,18 +54,22 @@ module private Translation =
 
 /// Contains standard Enigma rotors and reflectors.
 module Components =
-    let private createRotor (mapping, knockOns) = { Mapping = mapping; KnockOns = knockOns |> List.map WheelPosition; RingSetting = RingSetting 'A' }
-    let Rotor1 = createRotor ("EKMFLGDQVZNTOWYHXUSPAIBRCJ".ToCharArray(), [ 'Q' ])
-    let Rotor2 = createRotor ("AJDKSIRUXBLHWTMCQGZNPYFVOE".ToCharArray(), [ 'E' ])
-    let Rotor3 = createRotor ("BDFHJLCPRTXVZNYEIWGAKMUSQO".ToCharArray(), [ 'V' ])
-    let Rotor4 = createRotor ("ESOVPZJAYQUIRHXLNFTGKDCMWB".ToCharArray(), [ 'J' ])
-    let Rotor5 = createRotor ("VZBRGITYUPSDNHLXAWMJQOFECK".ToCharArray(), [ 'Z' ])
-    let Rotor6 = createRotor ("JPGVOUMFYQBENHZRDKASXLICTW".ToCharArray(), [ 'Z'; 'M'])
-    let Rotor7 = createRotor ("NZJHGRCXMYSWBOUFAIVLPEKQDT".ToCharArray(), [ 'Z'; 'M'])
-    let Rotor8 = createRotor ("FKQHTLXOCBJSPDZRAMEWNIUYGV".ToCharArray(), [ 'Z'; 'M'])
+    let private createRotor (number, mapping, knockOns) = { ID = number; Mapping = mapping; KnockOns = knockOns |> List.map WheelPosition; RingSetting = RingSetting 'A' }
+    let Rotor1 = createRotor (1, "EKMFLGDQVZNTOWYHXUSPAIBRCJ".ToCharArray(), [ 'Q' ])
+    let Rotor2 = createRotor (2, "AJDKSIRUXBLHWTMCQGZNPYFVOE".ToCharArray(), [ 'E' ])
+    let Rotor3 = createRotor (3, "BDFHJLCPRTXVZNYEIWGAKMUSQO".ToCharArray(), [ 'V' ])
+    let Rotor4 = createRotor (4, "ESOVPZJAYQUIRHXLNFTGKDCMWB".ToCharArray(), [ 'J' ])
+    let Rotor5 = createRotor (5, "VZBRGITYUPSDNHLXAWMJQOFECK".ToCharArray(), [ 'Z' ])
+    let Rotor6 = createRotor (6, "JPGVOUMFYQBENHZRDKASXLICTW".ToCharArray(), [ 'Z'; 'M'])
+    let Rotor7 = createRotor (7, "NZJHGRCXMYSWBOUFAIVLPEKQDT".ToCharArray(), [ 'Z'; 'M'])
+    let Rotor8 = createRotor (8, "FKQHTLXOCBJSPDZRAMEWNIUYGV".ToCharArray(), [ 'Z'; 'M'])
+
+    let Rotors = [ Rotor1; Rotor2; Rotor3; Rotor4; Rotor5; Rotor6; Rotor7; Rotor8 ]
 
     let ReflectorA = Reflector ("EJMZALYXVBWFCRQUONTSPIKHGD".ToCharArray())
     let ReflectorB = Reflector ("YRUHQSLDPXNGOKMIEBFZCWVJAT".ToCharArray())
+
+    let Reflectors = [ ReflectorA; ReflectorB ]
 
 /// Contains high-level operations to access Enigma.
 [<AutoOpen>]
@@ -89,8 +93,9 @@ module Operations =
         | enigma when enigma.Right |> isKnockOn -> { enigma with Middle = rotate enigma.Middle }
         | enigma when enigma.Middle |> isKnockOn -> { enigma with Left = rotate enigma.Left; Middle = rotate enigma.Middle }
         | _ -> enigma
-
-    let private translateChar enigma letter = 
+    
+    /// Translates an individual character and returns the updated Enigma state.
+    let translateChar enigma letter =
         match Char.ToUpper letter with
         | other when (not << Char.IsLetter) other -> other, enigma
         | letter ->

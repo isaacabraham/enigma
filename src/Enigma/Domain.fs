@@ -6,7 +6,8 @@ type WheelPosition = WheelPosition of char
 type KnockOn = WheelPosition list
 type PlugBoard = PlugBoard of Map<char, char>
 type Rotor =
-    { Mapping : AlphabetMapping
+    { ID : int
+      Mapping : AlphabetMapping
       KnockOns : KnockOn
       RingSetting : RingSetting }
 type TranslationDirection = | Forward | Inverse
