@@ -148,7 +148,7 @@ module Helpers =
     let withPlugBoard (mappings:string) enigma =
         { enigma with
             Plugboard =
-                (Map.empty, mappings.Split ' ' |> Array.collect(fun pair -> [| pair.[0], pair.[1]; pair.[1], pair.[0] |]))
+                (Map.empty, mappings.Split([|' '|], StringSplitOptions.RemoveEmptyEntries) |> Array.collect(fun pair -> [| pair.[0], pair.[1]; pair.[1], pair.[0] |]))
                 ||> Array.fold(fun plugBoard -> plugBoard.Add)
                 |> PlugBoard }
 
