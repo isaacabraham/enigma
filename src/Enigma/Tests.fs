@@ -17,7 +17,7 @@ let ``Should translate a message that only needs the right rotor to advance``() 
 [<Fact>]
 [<Trait("", "Unit Test")>]
 let ``Should translate a message with rotor turnover``() =
-     (defaultEnigma |> withWheelPositions 'A' 'B' 'R')
+    (defaultEnigma |> withWheelPositions 'A' 'B' 'R')
     |> translate "MABE KGZXSG"
     =! "TURN MIDDLE"
 
@@ -60,9 +60,10 @@ let ``Should translate a message with a plugboard``() =
 let ``Enigma Instruction Manual 1930``() =
     ({ defaultEnigma
         with Reflector = ReflectorA
-             Left = Rotor2, WheelPosition 'A'
-             Middle = Rotor1, WheelPosition 'B'
-             Right = Rotor3, WheelPosition 'L' }
+             Left = Rotor2
+             Middle = Rotor1
+             Right = Rotor3 }
+        |> withWheelPositions 'A' 'B' 'L'
         |> withRingSettings 'X' 'M' 'V'
         |> withPlugBoard "AM FI NV PS TU WZ")
     |> translate "GCDSE AHUGW TQGRK VLFGX UCALX VYMIG MMNMF DXTGN VHVRM MEVOU YFZSL RHDRR XFJWC FHUHM UNZEF RDISI KBGPM YVXUZ"
@@ -73,9 +74,10 @@ let ``Enigma Instruction Manual 1930``() =
 let ``Operation Barbarossa Part 1``() =
     ({ defaultEnigma
           with Reflector = ReflectorB
-               Left = Rotor2, WheelPosition 'B'
-               Middle = Rotor4, WheelPosition 'L'
-               Right = Rotor5, WheelPosition 'A' }
+               Left = Rotor2
+               Middle = Rotor4
+               Right = Rotor5 }
+      |> withWheelPositions 'B' 'L' 'A'
       |> withRingSettings 'B' 'U' 'L'
       |> withPlugBoard "AV BS CG DL FU HZ IN KM OW RX")
     |> translate "EDPUD NRGYS ZRCXN UYTPO MRMBO FKTBZ REZKM LXLVE FGUEY SIOZV EQMIK UBPMM YLKLT TDEIS MDICA GYKUA CTCDO MOHWX MUUIA UBSTS LRNBZ SZWNR FXWFY SSXJZ VIJHI DISHP RKLKA YUPAD TXQSP INQMA TLPIF SVKDA SCTAC DPBOP VHJK"
@@ -84,9 +86,10 @@ let ``Operation Barbarossa Part 1``() =
 let testEnigma =
     { defaultEnigma
          with Reflector = ReflectorB
-              Left = Rotor2, WheelPosition 'T'
-              Middle = Rotor4, WheelPosition 'E'
-              Right = Rotor5, WheelPosition 'D' }
+              Left = Rotor2
+              Middle = Rotor4
+              Right = Rotor5 }
+    |> withWheelPositions 'T' 'E' 'D'
     |> withRingSettings 'A' 'B' 'C'
     |> withPlugBoard "AB VS DG CL HU FZ KN IM RW OX"
 let testTranslate text = testEnigma |> translate text

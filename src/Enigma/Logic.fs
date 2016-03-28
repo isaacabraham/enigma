@@ -23,46 +23,45 @@ module private AlphabetMappingFunctions =
 
 module private Translation = 
     open AlphabetMappingFunctions
-    
-    let private applyWheelPosition (WheelPosition wheelPosition) (mapping:char array) =
-        let wheelPosition = alphabet.IndexOf wheelPosition
-        mapping
-        |> shiftMappingBy wheelPosition
-        |> Array.map (shiftDown wheelPosition)
 
-    let private applyRingSetting (RingSetting ringSetting) (mapping:char array) =
+    let applyRingSetting (RingSetting ringSetting) (mapping:char array) =
         let ringSettingIndex = alphabet.IndexOf ringSetting
         mapping
         |> shiftMappingBy (alphabet.Length - ringSettingIndex)
         |> Array.map (shiftUp ringSettingIndex)
 
-    let translateUsing (rotor, currentPosition) direction (letter:char) =
-        let mapping = rotor.Mapping |> applyWheelPosition currentPosition |> applyRingSetting rotor.RingSetting
+    let translateUsing rotor direction (letter:char) =
         match direction with
-        | Forward -> mapping.[alphabet.IndexOf letter]
-        | Inverse -> alphabet.[Array.IndexOf(mapping, letter)] 
+        | Forward -> rotor.Mapping.[alphabet.IndexOf letter]
+        | Inverse -> alphabet.[Array.IndexOf(rotor.Mapping, letter)] 
     let reflectUsing (Reflector mapping) (letter:char) = mapping.[alphabet.IndexOf letter]
     let substituteUsing (PlugBoard plugboardMapping) (letter:char) =
         letter
         |> plugboardMapping.TryFind
         |> defaultArg <| letter
 
-    let rotate (rotor, (WheelPosition currentPosition)) = 
-        rotor, currentPosition 
-               |> shiftUp 1
-               |> WheelPosition
+    /// Rotates the rotor by 1 notch.
+    let rotate (rotor:Rotor) = 
+        let rotateRotorBy distance (mapping:char array) =
+            mapping
+            |> shiftMappingBy distance
+            |> Array.map (shiftDown distance)  
+
+        { rotor with
+            Mapping = rotor.Mapping |> rotateRotorBy 1
+            KnockOns = rotor.KnockOns |> List.map(fun (KnockOn ko) -> KnockOn ((ko - 1 + 26) % 26)) }
 
 /// Contains standard Enigma rotors and reflectors.
 module Components =
-    let private createRotor (number, mapping, knockOns) = { ID = number; Mapping = mapping; KnockOns = knockOns |> List.map WheelPosition; RingSetting = RingSetting 'A' }
-    let Rotor1 = createRotor (1, "EKMFLGDQVZNTOWYHXUSPAIBRCJ".ToCharArray(), [ 'Q' ])
-    let Rotor2 = createRotor (2, "AJDKSIRUXBLHWTMCQGZNPYFVOE".ToCharArray(), [ 'E' ])
-    let Rotor3 = createRotor (3, "BDFHJLCPRTXVZNYEIWGAKMUSQO".ToCharArray(), [ 'V' ])
-    let Rotor4 = createRotor (4, "ESOVPZJAYQUIRHXLNFTGKDCMWB".ToCharArray(), [ 'J' ])
-    let Rotor5 = createRotor (5, "VZBRGITYUPSDNHLXAWMJQOFECK".ToCharArray(), [ 'Z' ])
-    let Rotor6 = createRotor (6, "JPGVOUMFYQBENHZRDKASXLICTW".ToCharArray(), [ 'Z'; 'M'])
-    let Rotor7 = createRotor (7, "NZJHGRCXMYSWBOUFAIVLPEKQDT".ToCharArray(), [ 'Z'; 'M'])
-    let Rotor8 = createRotor (8, "FKQHTLXOCBJSPDZRAMEWNIUYGV".ToCharArray(), [ 'Z'; 'M'])
+    let private createRotor (number, mapping, knockOns) = { ID = number; Mapping = mapping; KnockOns = knockOns }
+    let Rotor1 = createRotor (1, "EKMFLGDQVZNTOWYHXUSPAIBRCJ".ToCharArray(), [ KnockOn 16 ])
+    let Rotor2 = createRotor (2, "AJDKSIRUXBLHWTMCQGZNPYFVOE".ToCharArray(), [ KnockOn 4 ])
+    let Rotor3 = createRotor (3, "BDFHJLCPRTXVZNYEIWGAKMUSQO".ToCharArray(), [ KnockOn 21 ])
+    let Rotor4 = createRotor (4, "ESOVPZJAYQUIRHXLNFTGKDCMWB".ToCharArray(), [ KnockOn 9 ])
+    let Rotor5 = createRotor (5, "VZBRGITYUPSDNHLXAWMJQOFECK".ToCharArray(), [ KnockOn 25 ])
+    let Rotor6 = createRotor (6, "JPGVOUMFYQBENHZRDKASXLICTW".ToCharArray(), [ KnockOn 13; KnockOn 25 ])
+    let Rotor7 = createRotor (7, "NZJHGRCXMYSWBOUFAIVLPEKQDT".ToCharArray(), [ KnockOn 13; KnockOn 25 ])
+    let Rotor8 = createRotor (8, "FKQHTLXOCBJSPDZRAMEWNIUYGV".ToCharArray(), [ KnockOn 13; KnockOn 25 ])
 
     let Rotors = [ Rotor1; Rotor2; Rotor3; Rotor4; Rotor5; Rotor6; Rotor7; Rotor8 ]
 
@@ -88,7 +87,7 @@ module Operations =
         >> substituteUsing plugboard
                
     let private setAdjacentRotors enigma =
-        let isKnockOn (rotor, currentPosition) = rotor.KnockOns |> List.exists((=) currentPosition)
+        let isKnockOn rotor = rotor.KnockOns |> List.contains (KnockOn 0)
         match enigma with
         | enigma when enigma.Right |> isKnockOn -> { enigma with Middle = rotate enigma.Middle }
         | enigma when enigma.Middle |> isKnockOn -> { enigma with Left = rotate enigma.Left; Middle = rotate enigma.Middle }
@@ -117,32 +116,37 @@ module Helpers =
 
     /// An enigma machine using rotors 1-3 and reflector B with no plugboard.
     let defaultEnigma = 
-        {   Left = Rotor1, WheelPosition 'A'
-            Middle = Rotor2, WheelPosition 'A'
-            Right = Rotor3, WheelPosition 'A'
+        {   Left = Rotor1
+            Middle = Rotor2
+            Right = Rotor3
             Reflector = ReflectorB
             Plugboard = PlugBoard Map.empty }
 
     /// Sets the rotors of the Enigma.
     let withRotors a b c enigma =
         { enigma with
-            Left = a, snd enigma.Left
-            Middle = b, snd enigma.Middle
-            Right = c, snd enigma.Right }
+            Left = a
+            Middle = b
+            Right = c }
     
     /// Adjusts the wheel positions of the Enigma.
-    let withWheelPositions a b c enigma =
+    let withWheelPositions (a:char) (b:char) (c:char) enigma =
+        let setRotorToPosition (newWheelPosition:char) rotor =
+            let skipDistance = AlphabetMappingFunctions.alphabet.IndexOf newWheelPosition           
+            (rotor, [ 1 .. skipDistance ])
+            ||> List.fold(fun rotor _ -> Translation.rotate rotor)
+
         { enigma with
-            Left = fst enigma.Left, WheelPosition a
-            Middle = fst enigma.Middle, WheelPosition b
-            Right = fst enigma.Right, WheelPosition c }
+            Left = enigma.Left |> setRotorToPosition a
+            Middle = enigma.Middle |> setRotorToPosition b
+            Right = enigma.Right |> setRotorToPosition c }
 
     /// Adjusts the ring settings of the Enigma.
     let withRingSettings a b c enigma = 
         { enigma with
-            Left = { fst enigma.Left with RingSetting = RingSetting a }, snd enigma.Left
-            Middle = { fst enigma.Middle with RingSetting = RingSetting b }, snd enigma.Middle
-            Right = { fst enigma.Right with RingSetting = RingSetting c }, snd enigma.Right }
+            Left = { enigma.Left with Mapping = Translation.applyRingSetting (RingSetting a) enigma.Left.Mapping }
+            Middle = { enigma.Middle with Mapping = Translation.applyRingSetting (RingSetting b) enigma.Middle.Mapping }
+            Right = { enigma.Right with Mapping = Translation.applyRingSetting (RingSetting c) enigma.Right.Mapping } }
     
     /// Adjusts the plugboard of the Enigma.       
     let withPlugBoard (mappings:string) enigma =
