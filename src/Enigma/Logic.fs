@@ -156,4 +156,9 @@ module Helpers =
                 ||> Array.fold(fun plugBoard -> plugBoard.Add)
                 |> PlugBoard }
 
+    /// Moves the machine "forward" by a number of character presses.
+    let moveForwardBy turns enigma =
+        (enigma, [ 1 .. turns ])
+        ||> List.fold(fun enigma _ -> translateChar enigma 'a' |> snd)
+
 
