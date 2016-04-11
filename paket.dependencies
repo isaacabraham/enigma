@@ -6,3 +6,5 @@ nuget Streams
 nuget Unquote
 nuget FsCheck.xUnit
 nuget xunit.runner.visualstudio version_in_path: true
+
+github fsprojects/FsReveal build.fsx .

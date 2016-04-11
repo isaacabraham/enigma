@@ -29,3 +29,6 @@ _ReSharper*/
 [Tt]est[Rr]esult*
 *.dll
 packages
+output/
+paket-files
+host-slides.fsx

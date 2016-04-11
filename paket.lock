@@ -3,17 +3,35 @@ FRAMEWORK: NET452
 NUGET
   remote: https://www.nuget.org/api/v2
   specs:
+    FAKE (4.24.1)
     FsCheck (2.2.4)
       FSharp.Core (>= 3.1.2.5)
     FsCheck.Xunit (2.2.4)
       FsCheck (>= 2.2.4)
-      xunit.extensibility.execution (>= 2.1.0 < 2.2.0)
+      xunit.extensibility.execution (>= 2.1 < 2.2)
+    FSharp.Compiler.Service (2.0.0.6)
     FSharp.Core (4.0.0.1)
+    FSharp.Formatting (2.14.2)
+      FSharp.Compiler.Service (2.0.0.6)
+      FSharpVSPowerTools.Core (>= 2.3 < 2.4)
+    FSharpVSPowerTools.Core (2.3)
+      FSharp.Compiler.Service (>= 2.0.0.3)
+    FsReveal (1.2.3)
+      FSharp.Formatting (>= 2.11)
     Streams (0.4.1)
+    Suave (1.1.2)
+      FSharp.Core (>= 3.1.2.5)
     Unquote (3.1.1)
-    xunit.abstractions (2.0.0)
-    xunit.extensibility.core (2.1.0)
-      xunit.abstractions (2.0.0)
-    xunit.extensibility.execution (2.1.0)
-      xunit.extensibility.core (2.1.0)
-    xunit.runner.visualstudio (2.1.0) - version_in_path: true
+    xunit.abstractions (2.0)
+    xunit.extensibility.core (2.1)
+      xunit.abstractions (2.0)
+    xunit.extensibility.execution (2.1)
+      xunit.extensibility.core (2.1)
+    xunit.runner.visualstudio (2.1) - version_in_path: true
+GITHUB
+  remote: fsprojects/FsReveal
+  specs:
+    build.fsx (95304b113190ff38ced5eeb388e811151a7b5c4c) .
+      FAKE
+      FsReveal
+      Suave
