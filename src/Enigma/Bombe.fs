@@ -14,7 +14,7 @@ module private SequenceGeneration =
         else
             letters.[index] <- (int letters.[index] + 1) |> char
             false
-    
+
     let rec generateSequence (letters:char array) =
         seq {
             yield letters
@@ -40,9 +40,9 @@ module private SequenceGeneration =
                         if (a <> b && a <> c && b <> c) then
                             yield rotorComponents.[a], rotorComponents.[b], rotorComponents.[c]
         } |> Seq.toArray
-    
+
 type private Status = Update of Enigma | Complete
-let tryFindSolution encryptedText crib logger =
+let tryFindSolution encryptedText (crib:string) logger =
     let permutations =
         SequenceGeneration.generateSequence (Array.create 5 'A')
         |> ParStream.ofSeq

@@ -2,3 +2,4 @@ Unquote
 FsCheck.xUnit
 xunit.runner.visualstudio
 Streams
+Microsoft.NET.Test.Sdk

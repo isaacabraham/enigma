@@ -1,10 +1,12 @@
 source https://nuget.org/api/v2
 redirects: on
-framework: net452
+storage: none
+framework: netcoreapp3.1, netstandard2.0
 
 nuget Streams
 nuget Unquote
-nuget FsCheck.xUnit
+nuget FsCheck.xUnit prerelease
+nuget Microsoft.NET.Test.Sdk
 nuget xunit.runner.visualstudio version_in_path: true
 
 github fsprojects/FsReveal build.fsx .

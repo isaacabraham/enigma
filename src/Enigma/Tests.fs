@@ -96,7 +96,7 @@ let testTranslate text = testEnigma |> translate text
 
 type ValidTextGen() =
     static member private isValidChar = fun c -> Char.IsLetter c && Char.IsUpper c
-    static member GenerateString() = 
+    static member GenerateString() =
         Arb.Default.String()
         |> Arb.filter(function
             | null | "" -> false
@@ -119,6 +119,11 @@ let ``Encrypted and decrypted text are never the same``(text) =
 
 [<Property(Verbose = true, Arbitrary = [| typeof<ValidTextGen> |])>]
 [<Trait("", "Property-Based Test")>]
+let ``Encrypted letter is always different``(text:string) =
+    (testTranslate (string text.[0])) <> (string (text.[0])).ToUpper()
+
+[<Property(Verbose = true, Arbitrary = [| typeof<ValidTextGen> |])>]
+[<Trait("", "Property-Based Test")>]
 let ``Encrypted and decrypted text are always the same length``(text) =
     (testTranslate text).Length = text.Length
 
@@ -127,6 +132,6 @@ let ``Encrypted and decrypted text are always the same length``(text) =
 let ``Encrypting the same character multiple times produces different results``(letter:char) =
     Char.IsLetter letter ==> lazy
         (String(Array.init 5 (fun _ -> letter)))
-        |> testTranslate 
+        |> testTranslate
         |> Seq.distinct
         |> Seq.length > 1

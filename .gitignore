@@ -32,3 +32,5 @@ packages
 output/
 paket-files
 host-slides.fsx
+.paket/load
+.ionide/symbolCache.db
