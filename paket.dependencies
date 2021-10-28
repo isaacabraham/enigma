@@ -1,10 +1,11 @@
 source https://nuget.org/api/v2
 redirects: on
 storage: none
-framework: netcoreapp3.1, netstandard2.0
+framework: net50
 
 nuget Streams
 nuget Unquote
+nuget FsCheck 3.0.0-alpha4
 nuget FsCheck.xUnit prerelease
 nuget Microsoft.NET.Test.Sdk
 nuget xunit.runner.visualstudio version_in_path: true

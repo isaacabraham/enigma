@@ -1,5 +1,7 @@
-﻿#load "Domain.fs"
-#load "Logic.fs"
+#load
+    "Domain.fs"
+    "Logic.fs"
+
 open Enigma
 
 //Please decrypt me :)
@@ -13,15 +15,32 @@ let enigma = { defaultEnigma with
 
 enigma |> translate "JDDDZQ DEEWT HQA"
 
-// Sample of a crude brute force attack on Engima
-// Only works without a custom plugboard!
-#load @"../../.paket/load/main.group.fsx"
-#load "Bombe.fs"
+let v = enigma |> translate "H"
+enigma |> translate v
 
-let someSecretText = "CGZJT HRYVXHEYY"
-let crib = "HELLO"
+open System
 
-let (Some (tries, machine)) = Bombe.tryFindSolution someSecretText crib ignore
+let allLetters = [| 'A' .. 'Z' |]
 
-machine
-|> translate "CGZJT HRYVXHEYY"
+module Fitness =
+    let english = 0.0667
+    let german = 0.0734
+    let calculateCoincidence (text:string) =
+        let text = text |> Seq.filter Char.IsLetter |> Seq.map Char.ToUpper |> Seq.toArray
+        let N = float text.Length // text length
+        let F =
+            let sampleFrequencies =
+                text
+                |> Array.countBy id
+                |> readOnlyDict
+
+            allLetters
+            |> Array.map (sampleFrequencies.TryGetValue >> function (false, _) -> 0 | true, x -> x)
+
+        let firstBit = 1. / (N * (N - 1.))
+        let secondBit = F |> Array.sumBy (fun value -> value * (value - 1)) |> float
+        firstBit * secondBit
+
+Fitness.calculateCoincidence "JDDDZQ DEEWT HQA"
+let text = """Asynchronous updates usually follow a simple pattern: every asynchronous operation is coupled with a "start" event and a "finished" event. The start event doesn't need any parameter most of the time and is only responsible for issuing a command that eventually dispatches the finished event which carries the result of the operation."""
+Fitness.calculateCoincidence text

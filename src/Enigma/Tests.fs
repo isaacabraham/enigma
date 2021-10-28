@@ -1,4 +1,4 @@
-﻿module Enigma.Tests
+module Enigma.Tests
 
 open Components
 open Xunit
