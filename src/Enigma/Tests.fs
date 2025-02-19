@@ -151,12 +151,10 @@ let propertyBasedTests =
             PBT.fsCheckConfig
             "Encrypting the same character multiple times produces different results"
         <| fun letter ->
-            Char.IsLetter letter
-            ==> lazy
-                String(Array.init 5 (fun _ -> letter))
-                |> PBT.testTranslate
-                |> Seq.distinct
-                |> Seq.length > 1
+            String(Array.init 5 (fun _ -> letter))
+            |> PBT.testTranslate
+            |> Seq.distinct
+            |> Seq.length > 1
     ]
 
 [<Tests>]

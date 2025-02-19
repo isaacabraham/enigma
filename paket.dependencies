@@ -2,10 +2,8 @@ source https://api.nuget.org/v3/index.json
 framework: net8.0
 storage: none
 nuget Expecto.FsCheck
-nuget FsCheck.Xunit ~> 2
 nuget FSharp.Core
 nuget FsToolkit.ErrorHandling
 nuget Microsoft.NET.Test.Sdk
 nuget Unquote
-nuget xunit.runner.visualstudio
 nuget YoloDev.Expecto.TestSdk
