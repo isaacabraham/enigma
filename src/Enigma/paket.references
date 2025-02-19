@@ -1,4 +1,4 @@
+FSharp.Core
+FsToolkit.ErrorHandling
+FsCheck.Xunit
 Unquote
-FsCheck.xUnit
-xunit.runner.visualstudio
-Streams
