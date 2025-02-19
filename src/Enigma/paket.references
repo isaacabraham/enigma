@@ -4,3 +4,5 @@ FsCheck.Xunit
 Unquote
 Microsoft.NET.Test.Sdk
 xunit.runner.visualstudio
+YoloDev.Expecto.TestSdk
+Expecto.FsCheck
