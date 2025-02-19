@@ -4,4 +4,6 @@ storage: none
 nuget FsCheck.Xunit ~> 2
 nuget FSharp.Core
 nuget FsToolkit.ErrorHandling
+nuget Microsoft.NET.Test.Sdk
 nuget Unquote
+nuget xunit.runner.visualstudio
