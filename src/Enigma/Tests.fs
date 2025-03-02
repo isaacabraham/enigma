@@ -10,31 +10,27 @@ let unitTests =
         test "Should translate a message that only needs the right rotor to advance" {
             Expect.equal
                 (defaultEnigma
-                 |> withRotorPositions 'A' 'B' 'C'
+                 |> withRotorOffsets 'A' 'B' 'C'
                  |> Machine.translate "AEFAEJXXBNXYJTY")
                 "CONGRATULATIONS"
                 "Does not match"
         }
         test "Should translate a message with rotor turnover" {
             Expect.equal
-                (defaultEnigma
-                 |> withRotorPositions 'A' 'B' 'R'
-                 |> Machine.translate "MABE KGZXSG")
+                (defaultEnigma |> withRotorOffsets 'A' 'B' 'R' |> Machine.translate "MABE KGZXSG")
                 "TURN MIDDLE"
                 "Does not match"
         }
         test "Should translate a message with double stepping" {
             Expect.equal
-                (defaultEnigma
-                 |> withRotorPositions 'A' 'D' 'S'
-                 |> Machine.translate "RZFOG FYHPL")
+                (defaultEnigma |> withRotorOffsets 'A' 'D' 'S' |> Machine.translate "RZFOG FYHPL")
                 "TURNS THREE"
                 "Does not match"
         }
         test "Should translate a message with ring settings" {
             Expect.equal
                 (defaultEnigma
-                 |> withRotorPositions 'X' 'Y' 'Z'
+                 |> withRotorOffsets 'X' 'Y' 'Z'
                  |> withRingSettings 'J' 'N' 'U'
                  |> Machine.translate "QKTP EBZIUK")
                 "GOOD RESULT"
@@ -44,7 +40,7 @@ let unitTests =
             Expect.equal
                 (defaultEnigma
                  |> withRotors Rotor2 Rotor3 Rotor1
-                 |> withRotorPositions 'X' 'Y' 'Z'
+                 |> withRotorOffsets 'X' 'Y' 'Z'
                  |> withRingSettings 'J' 'N' 'U'
                  |> Machine.translate "WMUOMJ YRLFLA")
                 "CUSTOM ROTORS"
@@ -53,7 +49,7 @@ let unitTests =
         test "Should translate a message with a plugboard" {
             Expect.equal
                 (defaultEnigma
-                 |> withRotorPositions 'V' 'Q' 'Q'
+                 |> withRotorOffsets 'V' 'Q' 'Q'
                  |> withRingSettings 'J' 'N' 'U'
                  |> withPlugBoard "AP BR CM FZ GJ IL NT OV QS WX"
                  |> Machine.translate "HABHV HL YDFN ADZY")
@@ -73,7 +69,7 @@ let enigmaTests =
                         Middle = Rotor1
                         Right = Rotor3
                  }
-                 |> withRotorPositions 'A' 'B' 'L'
+                 |> withRotorOffsets 'A' 'B' 'L'
                  |> withRingSettings 'X' 'M' 'V'
                  |> withPlugBoard "AM FI NV PS TU WZ"
                  |> Machine.translate
@@ -90,12 +86,45 @@ let enigmaTests =
                         Middle = Rotor4
                         Right = Rotor5
                  }
-                 |> withRotorPositions 'B' 'L' 'A'
+                 |> withRotorOffsets 'B' 'L' 'A'
                  |> withRingSettings 'B' 'U' 'L'
                  |> withPlugBoard "AV BS CG DL FU HZ IN KM OW RX"
                  |> Machine.translate
                      "EDPUD NRGYS ZRCXN UYTPO MRMBO FKTBZ REZKM LXLVE FGUEY SIOZV EQMIK UBPMM YLKLT TDEIS MDICA GYKUA CTCDO MOHWX MUUIA UBSTS LRNBZ SZWNR FXWFY SSXJZ VIJHI DISHP RKLKA YUPAD TXQSP INQMA TLPIF SVKDA SCTAC DPBOP VHJK")
                 "AUFKL XABTE ILUNG XVONX KURTI NOWAX KURTI NOWAX NORDW ESTLX SEBEZ XSEBE ZXUAF FLIEG ERSTR ASZER IQTUN GXDUB ROWKI XDUBR OWKIX OPOTS CHKAX OPOTS CHKAX UMXEI NSAQT DREIN ULLXU HRANG ETRET ENXAN GRIFF XINFX RGTX"
+                "Does not match"
+        }
+        test "Operation Barbarossa Part 2" {
+            Expect.equal
+                ({
+                    defaultEnigma with
+                        Reflector = ReflectorB
+                        Left = Rotor2
+                        Middle = Rotor4
+                        Right = Rotor5
+                 }
+                 |> withRotorOffsets 'L' 'S' 'D'
+                 |> withRingSettings 'B' 'U' 'L'
+                 |> withPlugBoard "AV BS CG DL FU HZ IN KM OW RX"
+                 |> Machine.translate
+                     "SFBWD NJUSE GQOBH KRTAR EEZMW KPPRB XOHDR OEQGB BGTQV PGVKB VVGBI MHUSZ YDAJQ IROAX SSSNR EHYGG RPISE ZBOVM QIEMM ZCYSG QDGRE RVBIL EKXYQ IRGIR QNRDN VRXCY YTNJR")
+                "DREIG EHTLA NGSAM ABERS IQERV ORWAE RTSXE INSSI EBENN ULLSE QSXUH RXROE MXEIN SXINF RGTXD REIXA UFFLI EGERS TRASZ EMITA NFANG XEINS SEQSX KMXKM XOSTW XKAME NECXK"
+                "Does not match"
+        }
+        test "Scharnhorst, 1943" {
+            Expect.equal
+                ({
+                    defaultEnigma with
+                        Left = Rotor3
+                        Middle = Rotor6
+                        Right = Rotor8
+                 }
+                 |> withRotorOffsets 'U' 'Z' 'V'
+                 |> withRingSettings 'A' 'H' 'M'
+                 |> withPlugBoard "AN EZ HK IJ LR MQ OT PV SW UX"
+                 |> Machine.translate
+                     "YKAE NZAP MSCH ZBFO CUVM RMDP YCOF HADZ IZME FXTH FLOL PZLF GGBO TGOX GRET DWTJ IQHL MXVJ WKZU ASTR")
+                "STEU EREJ TANA FJOR DZAN STAN DORT QUAA ACCC VIER NEUS NEUN ZWOF AHRT ZWON ULSM XXSC HZRN HORS THCO"
                 "Does not match"
         }
     ]
@@ -123,7 +152,7 @@ module PBT =
                 Middle = Rotor4
                 Right = Rotor5
         }
-        |> withRotorPositions 'T' 'E' 'D'
+        |> withRotorOffsets 'T' 'E' 'D'
         |> withRingSettings 'A' 'B' 'C'
         |> withPlugBoard "AB VS DG CL HU FZ KN IM RW OX"
 
@@ -136,7 +165,9 @@ module PBT =
 
 let propertyBasedTests =
     testList "Property Based Tests" [
-        testPropertyWithConfig PBT.fsCheckConfig "Encrypting and decrypting text always gives the same text"
+        testPropertyWithConfig
+            PBT.fsCheckConfig
+            "Encrypting and then decrypting text always gives back the original text"
         <| fun text ->
             Expect.equal
                 (text |> PBT.testTranslate |> PBT.testTranslate)
@@ -155,7 +186,7 @@ let propertyBasedTests =
 
         testPropertyWithConfig
             PBT.fsCheckConfig
-            "Encrypting the same character multiple times produces different results"
+            "Encrypting the same character multiple times always produces different results"
         <| fun letter ->
             String(Array.init 5 (fun _ -> letter))
             |> PBT.testTranslate
@@ -167,4 +198,13 @@ let propertyBasedTests =
 let allTests = testList "All Tests" [ unitTests; enigmaTests; propertyBasedTests ]
 
 [<EntryPoint>]
-let main args = runTestsWithCLIArgs [] args allTests
+let main args =
+    let solution =
+        Bombe.tryFindSolution
+            "EDPUD NRGYS ZRCXN UYTPO MRMBO FKTBZ REZKM LXLVE FGUEY SIOZV EQMIK UBPMM YLKLT TDEIS MDICA GYKUA CTCDO MOHWX MUUIA UBSTS LRNBZ SZWNR FXWFY SSXJZ VIJHI DISHP RKLKA YUPAD TXQSP INQMA TLPIF SVKDA SCTAC DPBOP VHJK"
+            "AUFKL"
+            (fun (m, progress, rate, elapsed, remaining) ->
+                printfn $"%.2f{progress}%% ({rate} sims/sec) {elapsed} elapsed, {remaining} remaining.")
+
+    0
+// runTestsWithCLIArgs [] args allTests

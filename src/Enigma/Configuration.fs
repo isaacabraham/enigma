@@ -58,7 +58,7 @@ let withRotors left middle right enigma = {
 }
 
 /// Adjusts the wheel positions of the Enigma.
-let withRotorPositions left middle right enigma = {
+let withRotorOffsets left middle right enigma = {
     enigma with
         Left = enigma.Left |> Rotor.withPosition left
         Middle = enigma.Middle |> Rotor.withPosition middle
@@ -83,3 +83,6 @@ let withPlugBoard (mappings: string) enigma = {
             ||> Array.fold (fun plugBoard -> plugBoard.Add)
             |> PlugBoard
 }
+
+/// Adjusts the reflector of the Enigma.
+let withReflector reflector enigma = { enigma with Reflector = reflector }

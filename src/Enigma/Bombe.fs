@@ -8,15 +8,15 @@ module private SequenceGeneration =
     let private endSequence = Array.create 3 'Z'
 
     let private shiftLetter index (letters: char array) =
-        if letters.[index] = 'Z' then
-            letters.[index] <- 'A'
+        if letters[index] = 'Z' then
+            letters[index] <- 'A'
             true
         else
-            letters.[index] <- (int letters.[index] + 1) |> char
+            letters[index] <- (int letters[index] + 1) |> char
             false
 
     let rec generateSequence (letters: char array) = seq {
-        yield letters
+        letters
 
         if letters <> endSequence then
             ((false, 0), letters)
@@ -35,22 +35,15 @@ module private SequenceGeneration =
     }
 
     let rotors =
-        let rotorComponents = [
-            Configuration.Rotor1
-            Configuration.Rotor2
-            Configuration.Rotor3
-            Configuration.Rotor4
-            Configuration.Rotor5
-        ]
+        let rotorComponents = [ Rotor1; Rotor2; Rotor3; Rotor4; Rotor5 ]
 
-        seq {
+        [|
             for a in 0..4 do
                 for b in 0..4 do
                     for c in 0..4 do
                         if a <> b && a <> c && b <> c then
-                            yield rotorComponents.[a], rotorComponents.[b], rotorComponents.[c]
-        }
-        |> Seq.toArray
+                            rotorComponents[a], rotorComponents[b], rotorComponents[c]
+        |]
 
 type private Status =
     | Update of Machine
@@ -92,7 +85,7 @@ let tryFindSolution encryptedText (crib: string) logger =
     |> Seq.indexed
     |> Seq.choose (fun (index, permutations) ->
         match permutations with
-        | [| a; b; c; d; e |] -> Some(index, defaultEnigma |> withRotorPositions a b c |> withRingSettings 'A' d e) // first ring setting does nothing
+        | [| a; b; c; d; e |] -> Some(index, defaultEnigma |> withRotorOffsets a b c |> withRingSettings 'A' d e) // first ring setting does nothing
         | _ -> None)
     |> Seq.tryFind (fun (_, machine) ->
         recorder.Post(Update machine)
