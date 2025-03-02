@@ -92,7 +92,7 @@ let tryFindSolution encryptedText (crib: string) logger =
     |> Seq.indexed
     |> Seq.choose (fun (index, permutations) ->
         match permutations with
-        | [| a; b; c; d; e |] -> Some(index, defaultEnigma |> withWheelPositions a b c |> withRingSettings 'A' d e) // first ring setting does nothing
+        | [| a; b; c; d; e |] -> Some(index, defaultEnigma |> withRotorPositions a b c |> withRingSettings 'A' d e) // first ring setting does nothing
         | _ -> None)
     |> Seq.tryFind (fun (_, machine) ->
         recorder.Post(Update machine)

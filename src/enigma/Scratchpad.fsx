@@ -1,23 +1,19 @@
-﻿#load "Domain.fs" "Logic.fs"
+﻿#load "Domain.fs" "Configuration.fs"
 open Enigma
 
 //Please decrypt me :)
 let machine =
     {
         defaultEnigma with
-            Left = Configuration.Rotor3
-            Middle = Configuration.Rotor6
-            Right = Configuration.Rotor8
+            Left = Rotor3
+            Middle = Rotor6
+            Right = Rotor8
+            Debug = true
     }
-    |> withWheelPositions 'U' 'Z' 'V'
+    |> withRotorPositions 'U' 'Z' 'V'
     |> withRingSettings 'A' 'H' 'M'
     |> withPlugBoard "AN EZ HK IJ LR MQ OT PV SW UX"
 
 machine |> Machine.translate "JDDDZQ DEEWT HQA"
 
-let m = defaultEnigma
-
-m.Left
-m.Left |> Rotor.withRingSetting 'B'
-
-Rotor.translate (m.Left |> Rotor.withRingSetting 'B') Up 'A'
+defaultEnigma |> Machine.moveForwardBy 101

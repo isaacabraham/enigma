@@ -38,6 +38,8 @@ type Rotor = {
     ID: int
     Mapping: AlphabetMapping
     Turnovers: Turnover list
+    Offset: int
+    RingSetting: RingSetting
 }
 
 type Reflector = Reflector of AlphabetMapping
@@ -48,6 +50,7 @@ type Machine = {
     Right: Rotor
     Reflector: Reflector
     Plugboard: PlugBoard
+    Debug: bool
 }
 
 module Rotor =
@@ -55,15 +58,12 @@ module Rotor =
     open System
 
     /// Rotates the rotor by 1 notch.
-    let rotate rotor =
-        let rotateBy distance (mapping: AlphabetMapping) =
-            mapping |> offsetBy distance |> Array.map (shiftDown distance)
-
-        {
-            rotor with
-                Mapping = rotor.Mapping |> rotateBy 1
-                Turnovers = rotor.Turnovers |> List.map (fun (Turnover v) -> Turnover((v - 1 + 26) % 26))
-        }
+    let rotate rotor = {
+        rotor with
+            Mapping = rotor.Mapping |> offsetBy 1 |> Array.map (shiftDown 1)
+            Turnovers = rotor.Turnovers |> List.map (fun (Turnover v) -> Turnover((v - 1 + 26) % 26))
+            Offset = (rotor.Offset + 1) % 26
+    }
 
     /// Sets the rotor to a specific position.
     let withPosition (newWheelPosition: char) rotor =
@@ -77,6 +77,7 @@ module Rotor =
 
         {
             rotor with
+                RingSetting = ringSetting
                 Mapping =
                     rotor.Mapping
                     |> offsetBy (alphabet.Length - ringSettingIndex)
@@ -102,32 +103,45 @@ module PlugBoard =
 module Machine =
     open System
 
-    let private doTranslation (leftRotor, middleRotor, rightRotor, reflector, plugboard) =
-        PlugBoard.translate plugboard
-        >> Rotor.translate rightRotor Up
-        >> Rotor.translate middleRotor Up
-        >> Rotor.translate leftRotor Up
-        >> Reflector.translate reflector
-        >> Rotor.translate leftRotor Down
-        >> Rotor.translate middleRotor Down
-        >> Rotor.translate rightRotor Down
-        >> PlugBoard.translate plugboard
+    let debugger title translator input =
+        let output = translator input
+        printfn $"{title}: {input} -> {output}"
+        output
 
-    let private setAdjacentRotors machine =
+    let translationPipeline machine =
+        let debugger = if machine.Debug then debugger else fun _ -> id
+
+        debugger "Plugboard" (PlugBoard.translate machine.Plugboard)
+        >> debugger "Right" (Rotor.translate machine.Right Up)
+        >> debugger "Middle" (Rotor.translate machine.Middle Up)
+        >> debugger "Left" (Rotor.translate machine.Left Up)
+        >> debugger "Reflector" (Reflector.translate machine.Reflector)
+        >> debugger "Left" (Rotor.translate machine.Left Down)
+        >> debugger "Middle" (Rotor.translate machine.Middle Down)
+        >> debugger "Right" (Rotor.translate machine.Right Down)
+        >> debugger "Plugboard" (PlugBoard.translate machine.Plugboard)
+
+    let (|RightTurnover|MiddleTurnover|Neither|) machine =
         let isTurnover rotor =
             rotor.Turnovers |> List.contains (Turnover 0)
 
+        if machine.Right |> isTurnover then RightTurnover
+        elif machine.Middle |> isTurnover then MiddleTurnover
+        else Neither
+
+    /// Processes the "turnovers" of the rotors.
+    let turnover machine =
         match machine with
-        | machine when machine.Right |> isTurnover -> {
+        | RightTurnover -> {
             machine with
                 Middle = Rotor.rotate machine.Middle
           }
-        | machine when machine.Middle |> isTurnover -> {
+        | MiddleTurnover -> {
             machine with
+                Middle = Rotor.rotate machine.Middle
                 Left = Rotor.rotate machine.Left
-                Middle = Rotor.rotate machine.Middle
           }
-        | _ -> machine
+        | Neither -> machine
 
     let (|Alpha|NonAlpha|) c =
         if Char.IsLetter c then Alpha(Char.ToUpper c) else NonAlpha
@@ -138,16 +152,19 @@ module Machine =
         | NonAlpha -> letter, machine
         | Alpha letter ->
             let machine = {
-                setAdjacentRotors machine with
+                turnover machine with
                     Right = Rotor.rotate machine.Right
             }
 
-            let result =
-                letter
-                |> doTranslation (machine.Left, machine.Middle, machine.Right, machine.Reflector, machine.Plugboard)
+            let result = letter |> translationPipeline machine
 
             result, machine
 
     /// Translates some text using the supplied enigma machine.
     let translate (text: String) machine =
         (machine, text.ToCharArray()) ||> Array.mapFold translateChar |> fst |> String
+
+    /// Moves the machine "forward" by a number of character presses.
+    let moveForwardBy turns enigma =
+        (enigma, [ 1..turns ])
+        ||> List.fold (fun enigma _ -> translateChar enigma 'a' |> snd)

@@ -10,7 +10,7 @@ let unitTests =
         test "Should translate a message that only needs the right rotor to advance" {
             Expect.equal
                 (defaultEnigma
-                 |> withWheelPositions 'A' 'B' 'C'
+                 |> withRotorPositions 'A' 'B' 'C'
                  |> Machine.translate "AEFAEJXXBNXYJTY")
                 "CONGRATULATIONS"
                 "Does not match"
@@ -18,7 +18,7 @@ let unitTests =
         test "Should translate a message with rotor turnover" {
             Expect.equal
                 (defaultEnigma
-                 |> withWheelPositions 'A' 'B' 'R'
+                 |> withRotorPositions 'A' 'B' 'R'
                  |> Machine.translate "MABE KGZXSG")
                 "TURN MIDDLE"
                 "Does not match"
@@ -26,7 +26,7 @@ let unitTests =
         test "Should translate a message with double stepping" {
             Expect.equal
                 (defaultEnigma
-                 |> withWheelPositions 'A' 'D' 'S'
+                 |> withRotorPositions 'A' 'D' 'S'
                  |> Machine.translate "RZFOG FYHPL")
                 "TURNS THREE"
                 "Does not match"
@@ -34,7 +34,7 @@ let unitTests =
         test "Should translate a message with ring settings" {
             Expect.equal
                 (defaultEnigma
-                 |> withWheelPositions 'X' 'Y' 'Z'
+                 |> withRotorPositions 'X' 'Y' 'Z'
                  |> withRingSettings 'J' 'N' 'U'
                  |> Machine.translate "QKTP EBZIUK")
                 "GOOD RESULT"
@@ -44,7 +44,7 @@ let unitTests =
             Expect.equal
                 (defaultEnigma
                  |> withRotors Rotor2 Rotor3 Rotor1
-                 |> withWheelPositions 'X' 'Y' 'Z'
+                 |> withRotorPositions 'X' 'Y' 'Z'
                  |> withRingSettings 'J' 'N' 'U'
                  |> Machine.translate "WMUOMJ YRLFLA")
                 "CUSTOM ROTORS"
@@ -53,7 +53,7 @@ let unitTests =
         test "Should translate a message with a plugboard" {
             Expect.equal
                 (defaultEnigma
-                 |> withWheelPositions 'V' 'Q' 'Q'
+                 |> withRotorPositions 'V' 'Q' 'Q'
                  |> withRingSettings 'J' 'N' 'U'
                  |> withPlugBoard "AP BR CM FZ GJ IL NT OV QS WX"
                  |> Machine.translate "HABHV HL YDFN ADZY")
@@ -73,7 +73,7 @@ let enigmaTests =
                         Middle = Rotor1
                         Right = Rotor3
                  }
-                 |> withWheelPositions 'A' 'B' 'L'
+                 |> withRotorPositions 'A' 'B' 'L'
                  |> withRingSettings 'X' 'M' 'V'
                  |> withPlugBoard "AM FI NV PS TU WZ"
                  |> Machine.translate
@@ -90,7 +90,7 @@ let enigmaTests =
                         Middle = Rotor4
                         Right = Rotor5
                  }
-                 |> withWheelPositions 'B' 'L' 'A'
+                 |> withRotorPositions 'B' 'L' 'A'
                  |> withRingSettings 'B' 'U' 'L'
                  |> withPlugBoard "AV BS CG DL FU HZ IN KM OW RX"
                  |> Machine.translate
@@ -123,7 +123,7 @@ module PBT =
                 Middle = Rotor4
                 Right = Rotor5
         }
-        |> withWheelPositions 'T' 'E' 'D'
+        |> withRotorPositions 'T' 'E' 'D'
         |> withRingSettings 'A' 'B' 'C'
         |> withPlugBoard "AB VS DG CL HU FZ KN IM RW OX"
 
