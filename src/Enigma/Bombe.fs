@@ -36,11 +36,11 @@ module private SequenceGeneration =
 
     let rotors =
         let rotorComponents = [
-            Components.Rotor1
-            Components.Rotor2
-            Components.Rotor3
-            Components.Rotor4
-            Components.Rotor5
+            Configuration.Rotor1
+            Configuration.Rotor2
+            Configuration.Rotor3
+            Configuration.Rotor4
+            Configuration.Rotor5
         ]
 
         seq {
@@ -53,7 +53,7 @@ module private SequenceGeneration =
         |> Seq.toArray
 
 type private Status =
-    | Update of Enigma
+    | Update of Machine
     | Complete
 
 let tryFindSolution encryptedText (crib: string) logger =
@@ -96,7 +96,7 @@ let tryFindSolution encryptedText (crib: string) logger =
         | _ -> None)
     |> Seq.tryFind (fun (_, machine) ->
         recorder.Post(Update machine)
-        let translation = machine |> translate encryptedText
+        let translation = machine |> Machine.translate encryptedText
         let matched = translation.StartsWith crib
 
         if matched then

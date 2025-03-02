@@ -2,15 +2,15 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net8.0</TargetFramework>
         <RootNamespace>enigma</RootNamespace>
+        <GenerateProgramFile>false</GenerateProgramFile>
     </PropertyGroup>
 
     <ItemGroup>
         <Compile Include="Domain.fs" />
         <Compile Include="Logic.fs" />
-        <Compile Include="Tests.fs" />
         <Compile Include="Bombe.fs" />
+        <Compile Include="Tests.fs" />
         <None Include="Script.fsx" />
         <None Include="paket.references" />
     </ItemGroup>

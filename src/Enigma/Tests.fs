@@ -1,6 +1,6 @@
 ﻿module Enigma.Tests
 
-open Components
+open Configuration
 open FsCheck
 open System
 open Expecto
@@ -9,19 +9,25 @@ let unitTests =
     testList "Basic Unit Tests" [
         test "Should translate a message that only needs the right rotor to advance" {
             Expect.equal
-                (defaultEnigma |> withWheelPositions 'A' 'B' 'C' |> translate "AEFAEJXXBNXYJTY")
+                (defaultEnigma
+                 |> withWheelPositions 'A' 'B' 'C'
+                 |> Machine.translate "AEFAEJXXBNXYJTY")
                 "CONGRATULATIONS"
                 "Does not match"
         }
         test "Should translate a message with rotor turnover" {
             Expect.equal
-                (defaultEnigma |> withWheelPositions 'A' 'B' 'R' |> translate "MABE KGZXSG")
+                (defaultEnigma
+                 |> withWheelPositions 'A' 'B' 'R'
+                 |> Machine.translate "MABE KGZXSG")
                 "TURN MIDDLE"
                 "Does not match"
         }
         test "Should translate a message with double stepping" {
             Expect.equal
-                (defaultEnigma |> withWheelPositions 'A' 'D' 'S' |> translate "RZFOG FYHPL")
+                (defaultEnigma
+                 |> withWheelPositions 'A' 'D' 'S'
+                 |> Machine.translate "RZFOG FYHPL")
                 "TURNS THREE"
                 "Does not match"
         }
@@ -30,7 +36,7 @@ let unitTests =
                 (defaultEnigma
                  |> withWheelPositions 'X' 'Y' 'Z'
                  |> withRingSettings 'J' 'N' 'U'
-                 |> translate "QKTP EBZIUK")
+                 |> Machine.translate "QKTP EBZIUK")
                 "GOOD RESULT"
                 "Does not match"
         }
@@ -40,7 +46,7 @@ let unitTests =
                  |> withRotors Rotor2 Rotor3 Rotor1
                  |> withWheelPositions 'X' 'Y' 'Z'
                  |> withRingSettings 'J' 'N' 'U'
-                 |> translate "WMUOMJ YRLFLA")
+                 |> Machine.translate "WMUOMJ YRLFLA")
                 "CUSTOM ROTORS"
                 "Does not match"
         }
@@ -50,7 +56,7 @@ let unitTests =
                  |> withWheelPositions 'V' 'Q' 'Q'
                  |> withRingSettings 'J' 'N' 'U'
                  |> withPlugBoard "AP BR CM FZ GJ IL NT OV QS WX"
-                 |> translate "HABHV HL YDFN ADZY")
+                 |> Machine.translate "HABHV HL YDFN ADZY")
                 "THATS IT WELL DONE"
                 "Does not match"
         }
@@ -70,7 +76,7 @@ let enigmaTests =
                  |> withWheelPositions 'A' 'B' 'L'
                  |> withRingSettings 'X' 'M' 'V'
                  |> withPlugBoard "AM FI NV PS TU WZ"
-                 |> translate
+                 |> Machine.translate
                      "GCDSE AHUGW TQGRK VLFGX UCALX VYMIG MMNMF DXTGN VHVRM MEVOU YFZSL RHDRR XFJWC FHUHM UNZEF RDISI KBGPM YVXUZ")
                 "FEIND LIQEI NFANT ERIEK OLONN EBEOB AQTET XANFA NGSUE DAUSG ANGBA ERWAL DEXEN DEDRE IKMOS TWAER TSNEU STADT"
                 "Does not match"
@@ -87,7 +93,7 @@ let enigmaTests =
                  |> withWheelPositions 'B' 'L' 'A'
                  |> withRingSettings 'B' 'U' 'L'
                  |> withPlugBoard "AV BS CG DL FU HZ IN KM OW RX"
-                 |> translate
+                 |> Machine.translate
                      "EDPUD NRGYS ZRCXN UYTPO MRMBO FKTBZ REZKM LXLVE FGUEY SIOZV EQMIK UBPMM YLKLT TDEIS MDICA GYKUA CTCDO MOHWX MUUIA UBSTS LRNBZ SZWNR FXWFY SSXJZ VIJHI DISHP RKLKA YUPAD TXQSP INQMA TLPIF SVKDA SCTAC DPBOP VHJK")
                 "AUFKL XABTE ILUNG XVONX KURTI NOWAX KURTI NOWAX NORDW ESTLX SEBEZ XSEBE ZXUAF FLIEG ERSTR ASZER IQTUN GXDUB ROWKI XDUBR OWKIX OPOTS CHKAX OPOTS CHKAX UMXEI NSAQT DREIN ULLXU HRANG ETRET ENXAN GRIFF XINFX RGTX"
                 "Does not match"
@@ -126,7 +132,7 @@ module PBT =
             arbitrary = [ typeof<ValidTextGen> ]
     }
 
-    let testTranslate text = testEnigma |> translate text
+    let testTranslate text = testEnigma |> Machine.translate text
 
 let propertyBasedTests =
     testList "Property Based Tests" [
@@ -159,3 +165,6 @@ let propertyBasedTests =
 
 [<Tests>]
 let allTests = testList "All Tests" [ unitTests; enigmaTests; propertyBasedTests ]
+
+[<EntryPoint>]
+let main args = runTestsWithCLIArgs [] args allTests
